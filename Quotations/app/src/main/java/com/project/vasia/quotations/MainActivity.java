@@ -25,11 +25,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener  {
     final Uri THEMES_URI = Uri.parse("content://ua.vasia.Quotations/themes");
     final Uri QUOTES_URI = Uri.parse("content://ua.vasia.Quotations/quotes");
     final Uri AUTHORS_URI = Uri.parse("content://ua.vasia.Quotations/authors");
+    final Uri FAVOURITES_URI = Uri.parse("content://ua.vasia.Quotations/favourites");
     private ProgressDialog pDialog;
     // URL to get contacts JSON
     private static String url = "https://quote-collection.appspot.com/_ah/api/themeApi/v1/theme";
@@ -57,6 +60,7 @@ public class MainActivity extends AppCompatActivity
     private static ListView lvContact;
     private static String NEED_TABLE;
     private static Uri NEED_URI;
+    private static String selection = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,23 +70,122 @@ public class MainActivity extends AppCompatActivity
         NEED_TABLE = TAG_THEMES;
         NEED_URI = THEMES_URI;
 
-        Cursor cursor = getContentResolver().query(THEMES_URI, null, null,
+        final Cursor cursor = getContentResolver().query(THEMES_URI, null, null,
                 null, null);
         startManagingCursor(cursor);
         String from[] = { "name" };
-        int to[] = { android.R.id.text1 };
+        int to[] = { R.id.text11 };
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
-                android.R.layout.simple_list_item_1, cursor, from, to);
+                R.layout.item, cursor, from, to);
 
         lvContact = (ListView) findViewById(R.id.themes_list);
         lvContact.setAdapter(adapter);
-        lvContact.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = ((TextView)view).getText().toString();
-                Log.e("ITEM_SELECTED", item);
-            }
-        });
+
+            lvContact.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    if (NEED_URI == THEMES_URI) {
+                        String item = ((TextView) view).getText().toString();
+                        int count = position;
+                        Log.e("ITEM_SELECTED", item);
+                        Cursor crs = getContentResolver().query(NEED_URI,
+                                new String[]{"_id"},
+                                null,
+                                null,
+                                null);
+                        startManagingCursor(crs);
+                        ArrayList<String> arrcurval = new ArrayList<>();
+                        if (crs.moveToFirst()) {
+                            do {
+                                arrcurval.add(crs.getString(0)); //<< pass column index here instead of i
+
+                            } while (crs.moveToNext());
+                        }
+                        Log.e("ITEM_SELECTED", arrcurval.get(count));
+                        crs = getContentResolver().query(QUOTES_URI,
+                                null,
+                                "theme_id = " + arrcurval.get(count),
+                                null,
+                                null);
+                        startManagingCursor(crs);
+                        selection = "theme_id = " + arrcurval.get(count);
+                        String from[] = {"quotes"};
+                        int to[] = { R.id.text11 };
+                        SimpleCursorAdapter adapter = new SimpleCursorAdapter(getApplicationContext(),
+                                R.layout.item, crs, from, to);
+                        lvContact.setAdapter(adapter);
+                        NEED_URI = QUOTES_URI;
+                    }else if(NEED_URI == AUTHORS_URI){
+                        String item = ((TextView) view).getText().toString();
+                        int count = position;
+                        Log.e("ITEM_SELECTED", item);
+                        Cursor crs = getContentResolver().query(NEED_URI,
+                                new String[]{"_id"},
+                                null,
+                                null,
+                                null);
+                        startManagingCursor(crs);
+                        ArrayList<String> arrcurval = new ArrayList<>();
+                        if (crs.moveToFirst()) {
+                            do {
+                                arrcurval.add(crs.getString(0)); //<< pass column index here instead of i
+
+                            } while (crs.moveToNext());
+                        }
+                        Log.e("ITEM_SELECTED", arrcurval.get(count));
+                        crs = getContentResolver().query(QUOTES_URI,
+                                null,
+                                "author_id = " + arrcurval.get(count),
+                                null,
+                                null);
+                        startManagingCursor(crs);
+                        selection = "author_id = " + arrcurval.get(count);
+                        String from[] = {"quotes"};
+                        int to[] = { R.id.text11 };
+                        SimpleCursorAdapter adapter = new SimpleCursorAdapter(getApplicationContext(),
+                                R.layout.item, crs, from, to);
+                        lvContact.setAdapter(adapter);
+                        NEED_URI = QUOTES_URI;
+                    }else if(NEED_URI == QUOTES_URI){
+                        String item = ((TextView) view).getText().toString();
+                        int count = position;
+                        Log.e("ITEM_SELECTED", item);
+                        Cursor crs = getContentResolver().query(NEED_URI,
+                                new String[]{"quotes"},
+                                selection,
+                                null,
+                                null);
+                        ArrayList<String> arrcurval = new ArrayList<>();
+                        if (crs.moveToFirst()) {
+                            do {
+                                arrcurval.add(crs.getString(0)); //<< pass column index here instead of i
+
+                            } while (crs.moveToNext());
+                        }
+                        crs = getContentResolver().query(FAVOURITES_URI,
+                                null,
+                                null,
+                                null,
+                                null);
+                        startManagingCursor(crs);
+                        Log.e("ITEM_SELECTED", arrcurval.get(count));
+                        ContentValues values = new ContentValues();
+                        values.put("quote", arrcurval.get(count));
+                        Uri newUri = getContentResolver().insert(FAVOURITES_URI, values);
+                        Log.d("INSERT", "insert, result Uri : " + newUri.toString());
+                    }else if(NEED_URI == FAVOURITES_URI){
+                        String item = ((TextView) view).getText().toString();
+                        Cursor crs = getContentResolver().query(FAVOURITES_URI,
+                                null,
+                                null,
+                                null,
+                                null);
+                        startManagingCursor(crs);
+                        int newUri = getContentResolver().delete(FAVOURITES_URI, "quote = '" + item + "'" , null);
+                        Log.d("DELETE", "delete, result Uri : " + newUri);
+                    }
+                }
+            });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -137,21 +240,15 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.themes) {
-            NEED_TABLE = TAG_THEMES;
-            NEED_URI = THEMES_URI;
+
         } else if (id == R.id.authors) {
-            NEED_TABLE = TAG_AUTHORS;
-            NEED_URI = AUTHORS_URI;
+
         }else if (id == R.id.quotes){
-            NEED_TABLE = TAG_QUOTES;
-            NEED_URI = QUOTES_URI;
+
         }
         else if (id == R.id.favorites) {
 
         }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
     /**
@@ -268,15 +365,13 @@ public class MainActivity extends AppCompatActivity
         startManagingCursor(cursor);
 
         String from[] = { "name" };
-        int to[] = { android.R.id.text1 };
+        int to[] = { R.id.text11 };
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
-                android.R.layout.simple_list_item_1, cursor, from, to);
-
-        ListView lvContact = (ListView) findViewById(R.id.themes_list);
+                R.layout.item, cursor, from, to);
         lvContact.setAdapter(adapter);
     }
     public void onClickDelete(MenuItem item) {
-        Cursor cursor = getContentResolver().query(QUOTES_URI, null, null,
+        Cursor cursor = getContentResolver().query(THEMES_URI, null, null,
                 null, null);
         startManagingCursor(cursor);
         getContentResolver().delete(THEMES_URI, null, null);
@@ -299,12 +394,14 @@ public class MainActivity extends AppCompatActivity
         startManagingCursor(cursor);
 
         String from[] = { "name" };
-        int to[] = { android.R.id.text1 };
+        int to[] = { R.id.text11 };
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
-                android.R.layout.simple_list_item_1, cursor, from, to);
+                R.layout.item, cursor, from, to);
 
-        ListView lvContact = (ListView) findViewById(R.id.themes_list);
         lvContact.setAdapter(adapter);
+        NEED_URI = THEMES_URI;
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
     }
     public void onClickAuthors(MenuItem item) {
         Cursor cursor = getContentResolver().query(AUTHORS_URI, null, null,
@@ -312,12 +409,14 @@ public class MainActivity extends AppCompatActivity
         startManagingCursor(cursor);
 
         String from[] = { "name" };
-        int to[] = { android.R.id.text1 };
+        int to[] = { R.id.text11 };
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
-                android.R.layout.simple_list_item_1, cursor, from, to);
+                R.layout.item, cursor, from, to);
 
-        ListView lvContact = (ListView) findViewById(R.id.themes_list);
         lvContact.setAdapter(adapter);
+        NEED_URI = AUTHORS_URI;
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
     }
     public void onClickQuotes(MenuItem item) {
         Cursor cursor = getContentResolver().query(QUOTES_URI, null, null,
@@ -325,11 +424,28 @@ public class MainActivity extends AppCompatActivity
         startManagingCursor(cursor);
 
         String from[] = { "quotes" };
-        int to[] = { android.R.id.text1 };
+        int to[] = { R.id.text11 };
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
-                android.R.layout.simple_list_item_1, cursor, from, to);
+                R.layout.item, cursor, from, to);
 
-        ListView lvContact = (ListView) findViewById(R.id.themes_list);
         lvContact.setAdapter(adapter);
+        NEED_URI = QUOTES_URI;
+        selection = null;
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+    }
+    public void onClickFavourites(MenuItem item){
+        Cursor cursor = getContentResolver().query(FAVOURITES_URI, null, null,
+                null, null);
+        startManagingCursor(cursor);
+
+        String from[] = { "quote" };
+        int to[] = { R.id.text11 };
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
+                R.layout.item, cursor, from, to);
+        lvContact.setAdapter(adapter);
+        NEED_URI = FAVOURITES_URI;
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
     }
 }

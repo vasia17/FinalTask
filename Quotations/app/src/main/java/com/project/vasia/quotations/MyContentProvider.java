@@ -22,10 +22,11 @@ public class MyContentProvider extends ContentProvider {
     final String LOG_TAG = "myLogs";
     static final int DB_VERSION = 1;
 
-    // Таблиця тем
+    // Таблиці
     static final String THEMES_TABLE = "themes";
     static final String QUOTES_TABLE = "quotes";
     static final String AUTHORS_TABLE = "authors";
+    static final String FAVOURITES_TABLE = "favourites";
     // Поля для таблиці 1
     static final String THEMES_ID = "_id";
     static final String THEMES_NAME = "name";
@@ -40,6 +41,9 @@ public class MyContentProvider extends ContentProvider {
     static final String AUTHORS_ID = "_id";
     static final String AUTHORS_NAME = "name";
     static final String AUTHORS_TIME = "timestamp";
+    // Поля для таблиці 4
+    static final String FAVOURITES_ID = "_id";
+    static final String FAVOURITES_QOUTES = "quote";
     // Скрипт создания таблицы
     static final String DB_THEMES_CREATE = "create table " + THEMES_TABLE + "("
             + THEMES_ID + " integer primary key, "
@@ -51,6 +55,9 @@ public class MyContentProvider extends ContentProvider {
     static final String DB_AUTHORS_CREATE = "create table " + AUTHORS_TABLE + "("
             + AUTHORS_ID + " integer primary key, "
             + AUTHORS_NAME + " text, " + AUTHORS_TIME + " integer" + ");";
+    static final String DB_FAVOURITES_CREATE = "create table " + FAVOURITES_TABLE + "("
+            + FAVOURITES_ID + " integer primary key AUTOINCREMENT, "
+            + FAVOURITES_QOUTES + " text" + ");";
 
     // // Uri
     // authority
@@ -59,6 +66,7 @@ public class MyContentProvider extends ContentProvider {
     static final String THEMES_PATH = "themes";
     static final String QUOTES_PATH = "quotes";
     static final String AUTHORS_PATH = "authors";
+    static final String FAVOURITES_PATH = "favourites";
     // Общий Uri
     public static final Uri THEMES_CONTENT_URI = Uri.parse("content://"
             + AUTHORITY + "/" + THEMES_PATH);
@@ -66,7 +74,8 @@ public class MyContentProvider extends ContentProvider {
             + AUTHORITY + "/" + QUOTES_PATH);
     public static final Uri AUTHORS_CONTENT_URI = Uri.parse("content://"
             + AUTHORITY + "/" + AUTHORS_PATH);
-
+    public static final Uri FAVOURITES_CONTENT_URI = Uri.parse("content://"
+            + AUTHORITY + "/" + FAVOURITES_PATH);
     // Типы данных
     // набор строк
     static final String THEMES_CONTENT_TYPE = "vnd.android.cursor.dir/vnd."
@@ -75,6 +84,8 @@ public class MyContentProvider extends ContentProvider {
             + AUTHORITY + "." + QUOTES_PATH;
     static final String AUTHORS_CONTENT_TYPE = "vnd.android.cursor.dir/vnd."
             + AUTHORITY + "." + AUTHORS_PATH;
+    static final String FAVOURITES_CONTENT_TYPE = "vnd.android.cursor.dir/vnd."
+            + AUTHORITY + "." + FAVOURITES_PATH;
     // одна строка
     static final String THEMES_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd."
             + AUTHORITY + "." + THEMES_PATH;
@@ -82,16 +93,20 @@ public class MyContentProvider extends ContentProvider {
             + AUTHORITY + "." + QUOTES_PATH;
     static final String AUTHORS_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd."
             + AUTHORITY + "." + AUTHORS_PATH;
+    static final String FAVOURITES_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd."
+            + AUTHORITY + "." + FAVOURITES_PATH;
 
     //// UriMatcher
     // общий Uri
     static final int URI_THEMES = 1;
     static final int URI_QUOTES = 3;
     static final int URI_AUTHORS = 5;
+    static final int URI_FAVOURITES = 7;
     // Uri с указанным ID
     static final int URI_THEMES_ID = 2;
     static final int URI_QUOTES_ID = 4;
     static final int URI_AUTHORS_ID = 6;
+    static final int URI_FAVOURITES_ID = 8;
     // описание и создание UriMatcher
     private static final UriMatcher uriMatcher;
     static {
@@ -102,6 +117,8 @@ public class MyContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY, QUOTES_PATH + "/#", URI_QUOTES_ID);
         uriMatcher.addURI(AUTHORITY, AUTHORS_PATH, URI_AUTHORS);
         uriMatcher.addURI(AUTHORITY, AUTHORS_PATH + "/#", URI_AUTHORS_ID);
+        uriMatcher.addURI(AUTHORITY, FAVOURITES_PATH, URI_FAVOURITES);
+        uriMatcher.addURI(AUTHORITY, FAVOURITES_PATH + "/#", URI_FAVOURITES_ID);
     }
 
     DBHelper dbHelper;
@@ -188,6 +205,28 @@ public class MyContentProvider extends ContentProvider {
                     selection = selection + " AND " + AUTHORS_ID + " = " + id3;
                 }
                 break;
+            case URI_FAVOURITES: // общий Uri
+                Log.d(LOG_TAG, "URI_FAVOURITES");
+                NEED_TABLE = FAVOURITES_TABLE;
+                NEED_CONTENT_URI = FAVOURITES_CONTENT_URI;
+                URI_NEED = URI_FAVOURITES;
+                // если сортировка не указана, ставим свою - по имени
+                if (TextUtils.isEmpty(sortOrder)) {
+                    sortOrder = FAVOURITES_QOUTES + " ASC";
+                }
+                break;
+            case URI_FAVOURITES_ID: // Uri с ID
+                String id4 = uri.getLastPathSegment();
+                Log.d(LOG_TAG, "URI_FAVOURITES_ID, " + id4);
+                NEED_TABLE = FAVOURITES_TABLE;
+                NEED_CONTENT_URI = FAVOURITES_CONTENT_URI;
+                // добавляем ID к условию выборки
+                if (TextUtils.isEmpty(selection)) {
+                    selection = FAVOURITES_ID + " = " + id4;
+                } else {
+                    selection = selection + " AND " + FAVOURITES_ID + " = " + id4;
+                }
+                break;
             default:
                 throw new IllegalArgumentException("Wrong URI: " + uri);
         }
@@ -260,6 +299,20 @@ public class MyContentProvider extends ContentProvider {
                     selection = selection + " AND " + AUTHORS_ID + " = " + id3;
                 }
                 break;
+            case URI_FAVOURITES:
+                Log.d(LOG_TAG, "URI_FAVOURITES");
+                NEED_TABLE = FAVOURITES_TABLE;
+                break;
+            case URI_FAVOURITES_ID:
+                NEED_TABLE = FAVOURITES_TABLE;
+                String id4 = uri.getLastPathSegment();
+                Log.d(LOG_TAG, "URI_FAVOURITES_ID, " + id4);
+                if (TextUtils.isEmpty(selection)) {
+                    selection = FAVOURITES_ID + " = " + id4;
+                } else {
+                    selection = selection + " AND " + FAVOURITES_ID + " = " + id4;
+                }
+                break;
             default:
                 throw new IllegalArgumentException("Wrong URI: " + uri);
         }
@@ -310,6 +363,10 @@ public class MyContentProvider extends ContentProvider {
                 return AUTHORS_CONTENT_TYPE;
             case URI_AUTHORS_ID:
                 return AUTHORS_CONTENT_ITEM_TYPE;
+            case URI_FAVOURITES:
+                return FAVOURITES_CONTENT_TYPE;
+            case URI_FAVOURITES_ID:
+                return FAVOURITES_CONTENT_ITEM_TYPE;
         }
         return null;
     }
@@ -324,6 +381,7 @@ public class MyContentProvider extends ContentProvider {
             db.execSQL(DB_THEMES_CREATE);
             db.execSQL(DB_QUOTES_CREATE);
             db.execSQL(DB_AUTHORS_CREATE);
+            db.execSQL(DB_FAVOURITES_CREATE);
         }
 
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

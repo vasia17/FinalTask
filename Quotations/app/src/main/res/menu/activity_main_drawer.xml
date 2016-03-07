@@ -3,18 +3,19 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/themes"
-            android:title="Themes"
+            android:title="@string/Themes"
             android:onClick="onClickThemes"/>
         <item
             android:id="@+id/authors"
-            android:title="Authors"
+            android:title="@string/Authors"
             android:onClick="onClickAuthors"/>
         <item
             android:id="@+id/quotes"
-            android:title="All Quotes"
+            android:title="@string/All_Quotes"
             android:onClick="onClickQuotes"/>
         <item
             android:id="@+id/favorites"
-            android:title="Favorites" />
+            android:title="@string/Favourites"
+            android:onClick="onClickFavourites"/>
     </group>
 </menu>

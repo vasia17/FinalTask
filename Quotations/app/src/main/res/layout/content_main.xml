@@ -10,13 +10,13 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.project.vasia.quotations.MainActivity"
-    tools:showIn="@layout/app_bar_main">
+    tools:showIn="@layout/app_bar_main"
+    android:background="#dfc990">
 
     <ListView
         android:id="@+id/themes_list"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:choiceMode="singleChoice"
-        android:listSelector="@color/pressed_color"/>
+        />
 
 </RelativeLayout>
