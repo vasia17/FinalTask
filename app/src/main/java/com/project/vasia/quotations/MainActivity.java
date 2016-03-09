@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity
 
     private static ListView lvContact;
     private static Uri NEED_URI;
+    private static CheckBox checkBox;
     private static String NEED_SELECTION;
     private static String[] NEED_PROJECTION;
     private static int Action;
@@ -74,6 +76,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        checkBox = (CheckBox) findViewById(R.id.checkBox);
         lvContact = (ListView) findViewById(R.id.themes_list);
         NEED_URI = THEMES_URI;
         NEED_SELECTION = null;
@@ -98,9 +101,14 @@ public class MainActivity extends AppCompatActivity
                     NEED_PROJECTION = new String[]{"_id", "name"};
                     NEED_SELECTION = "name = '" + SELECTED_NAME + "'";
                     getLoaderManager().restartLoader(0, null, MainActivity.this);
+                } else if(NEED_URI == QUOTES_URI){
+
+                } else if (NEED_URI == FAVOURITES_URI){
+
                 }
             }
         });
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -162,15 +170,15 @@ public class MainActivity extends AppCompatActivity
                     lvContact.setAdapter(adapter);
                 }else if (NEED_URI == QUOTES_URI){
                     String from[] = {"quotes"};
-                    int to[] =  {R.id.text11};
+                    int to[] =  {R.id.text12};
                     adapter = new SimpleCursorAdapter(this,
-                            R.layout.item, data, from, to);
+                            R.layout.favourite_item, data, from, to);
                     lvContact.setAdapter(adapter);
                 }else if(NEED_URI == FAVOURITES_URI){
                     String from[] = {"quote"};
-                    int to[] =  {R.id.text11};
+                    int to[] =  {R.id.text13};
                     adapter = new SimpleCursorAdapter(this,
-                            R.layout.item, data, from, to);
+                            R.layout.delete_item, data, from, to);
                     lvContact.setAdapter(adapter);
                 }
                 break;
@@ -193,11 +201,15 @@ public class MainActivity extends AppCompatActivity
                     getLoaderManager().restartLoader(0, null, this);
                 }
                 break;
+            case 3:
+
+                break;
         }
     }
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
     }
+
     public class GetContacts extends AsyncTask<Void, Void, Void> {
         private static final String LOG_TAG = "ContentProvider";
         @Override
@@ -334,4 +346,5 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
     }
+
 }
