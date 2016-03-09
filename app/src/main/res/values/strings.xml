@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name" color = "#ffffff">Цитатник</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="Themes">Теми</string>
+    <string name="Authors">Автори</string>
+    <string name="All_Quotes">Цитати</string>
+    <string name="Favourites">Улюблені</string>
+</resources>
