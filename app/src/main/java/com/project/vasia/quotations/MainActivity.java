@@ -3,6 +3,7 @@ package com.project.vasia.quotations;
 import android.app.LoaderManager;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -20,10 +21,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
+import android.widget.GridLayout;
+import android.widget.ImageSwitcher;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,7 +35,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        LoaderManager.LoaderCallbacks<Cursor>  {
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     final Uri THEMES_URI = Uri.parse("content://ua.vasia.Quotations/themes");
     final Uri QUOTES_URI = Uri.parse("content://ua.vasia.Quotations/quotes");
@@ -63,7 +67,6 @@ public class MainActivity extends AppCompatActivity
 
     private static ListView lvContact;
     private static Uri NEED_URI;
-    private static CheckBox checkBox;
     private static String NEED_SELECTION;
     private static String[] NEED_PROJECTION;
     private static int Action;
@@ -76,7 +79,6 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        checkBox = (CheckBox) findViewById(R.id.checkBox);
         lvContact = (ListView) findViewById(R.id.themes_list);
         NEED_URI = THEMES_URI;
         NEED_SELECTION = null;
@@ -101,9 +103,9 @@ public class MainActivity extends AppCompatActivity
                     NEED_PROJECTION = new String[]{"_id", "name"};
                     NEED_SELECTION = "name = '" + SELECTED_NAME + "'";
                     getLoaderManager().restartLoader(0, null, MainActivity.this);
-                } else if(NEED_URI == QUOTES_URI){
+                } else if (NEED_URI == QUOTES_URI) {
 
-                } else if (NEED_URI == FAVOURITES_URI){
+                } else if (NEED_URI == FAVOURITES_URI) {
 
                 }
             }
@@ -122,6 +124,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -131,33 +134,38 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
         }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return true;
     }
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         return true;
     }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-                return new CursorLoader(
-                        getApplicationContext(),   // Parent activity context
-                        NEED_URI,                  // Table to query
-                        NEED_PROJECTION,           // Projection to return
-                        NEED_SELECTION,            // No selection clause
-                        null,                      // No selection arguments
-                        null                       // Default sort order
-                    );
+        return new CursorLoader(
+                getApplicationContext(),   // Parent activity context
+                NEED_URI,                  // Table to query
+                NEED_PROJECTION,           // Projection to return
+                NEED_SELECTION,            // No selection clause
+                null,                      // No selection arguments
+                null                       // Default sort order
+        );
 
 
     }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         switch (Action) {
@@ -168,17 +176,17 @@ public class MainActivity extends AppCompatActivity
                     adapter = new SimpleCursorAdapter(this,
                             R.layout.item, data, from, to);
                     lvContact.setAdapter(adapter);
-                }else if (NEED_URI == QUOTES_URI){
+                } else if (NEED_URI == QUOTES_URI) {
                     String from[] = {"quotes"};
-                    int to[] =  {R.id.text12};
-                    adapter = new SimpleCursorAdapter(this,
-                            R.layout.favourite_item, data, from, to);
+                    int to[] = {R.id.text12};
+                    adapter = new MyCursorAdapter(this,
+                            R.layout.favourite_item, data, from, to, 0);
                     lvContact.setAdapter(adapter);
-                }else if(NEED_URI == FAVOURITES_URI){
+                } else if (NEED_URI == FAVOURITES_URI) {
                     String from[] = {"quote"};
-                    int to[] =  {R.id.text13};
-                    adapter = new SimpleCursorAdapter(this,
-                            R.layout.delete_item, data, from, to);
+                    int to[] = {R.id.text12};
+                    adapter = new MyCursorAdapter(this,
+                            R.layout.favourite_item, data, from, to, 0);
                     lvContact.setAdapter(adapter);
                 }
                 break;
@@ -191,7 +199,7 @@ public class MainActivity extends AppCompatActivity
                     NEED_PROJECTION = null;
                     Action = Show;
                     getLoaderManager().restartLoader(0, null, this);
-                }else if(NEED_URI == AUTHORS_URI){
+                } else if (NEED_URI == AUTHORS_URI) {
                     data.moveToFirst();
                     String myitem = data.getString(0);
                     NEED_SELECTION = "author_id = " + myitem;
@@ -206,12 +214,14 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
+
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
     }
 
     public class GetContacts extends AsyncTask<Void, Void, Void> {
         private static final String LOG_TAG = "ContentProvider";
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -221,6 +231,7 @@ public class MainActivity extends AppCompatActivity
             pDialog.show();
 
         }
+
         @Override
         protected Void doInBackground(Void... arg0) {
             ServiceHandler sh = new ServiceHandler();
@@ -258,7 +269,7 @@ public class MainActivity extends AppCompatActivity
                         String id = c.getString(TAG_QUOTES_ID);
                         String name = c.getString(TAG_QUOTES_NAME);
                         String themeid = c.getString(TAG_QUOTES_THEME);
-                        String  time = c.getString(TAG_QUOTES_TIME);
+                        String time = c.getString(TAG_QUOTES_TIME);
                         String authorid = c.getString(TAG_QUOTES_AUTHOR);
                         values2.put("_id", id);
                         values2.put("quotes", name);
@@ -291,6 +302,7 @@ public class MainActivity extends AppCompatActivity
             }
             return null;
         }
+
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
@@ -305,11 +317,13 @@ public class MainActivity extends AppCompatActivity
         getLoaderManager().destroyLoader(0);
         new GetContacts().execute();
     }
+
     public void onClickDelete(MenuItem item) {
         getContentResolver().delete(THEMES_URI, null, null);
         getContentResolver().delete(QUOTES_URI, null, null);
         getContentResolver().delete(AUTHORS_URI, null, null);
     }
+
     public void onClickThemes(MenuItem item) {
         NEED_URI = THEMES_URI;
         NEED_SELECTION = null;
@@ -318,6 +332,7 @@ public class MainActivity extends AppCompatActivity
         getLoaderManager().restartLoader(0, null, this);
         closeDrawer();
     }
+
     public void onClickAuthors(MenuItem item) {
         NEED_URI = AUTHORS_URI;
         NEED_SELECTION = null;
@@ -326,6 +341,7 @@ public class MainActivity extends AppCompatActivity
         getLoaderManager().restartLoader(0, null, this);
         closeDrawer();
     }
+
     public void onClickQuotes(MenuItem item) {
         NEED_URI = QUOTES_URI;
         NEED_SELECTION = null;
@@ -334,7 +350,8 @@ public class MainActivity extends AppCompatActivity
         getLoaderManager().restartLoader(0, null, this);
         closeDrawer();
     }
-    public void onClickFavourites(MenuItem item){
+
+    public void onClickFavourites(MenuItem item) {
         NEED_URI = FAVOURITES_URI;
         NEED_SELECTION = null;
         NEED_PROJECTION = null;
@@ -342,9 +359,95 @@ public class MainActivity extends AppCompatActivity
         getLoaderManager().restartLoader(0, null, this);
         closeDrawer();
     }
-    public void closeDrawer(){
+
+    public void closeDrawer() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+    }
+
+    public class MyCursorAdapter extends SimpleCursorAdapter implements View.OnClickListener {
+
+        protected int[] mFrom = {1};
+        protected int[] mTo = {R.id.text12};
+        private ViewBinder mViewBinder;
+        private ImageSwitcher sw;
+        private Cursor myCursor;
+
+        public MyCursorAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flag) {
+            super(context, layout, c, from, to, flag);
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            super.bindView(view, context, cursor);
+
+            String quotesID = cursor.getString(0);
+            ContentValues valuesForFavourites = new ContentValues();
+            valuesForFavourites.put("_id", quotesID);
+            valuesForFavourites.put("quote", cursor.getString(1));
+
+            sw = (ImageSwitcher) view.findViewById(R.id.imageSwitcher);
+            sw.removeAllViews();
+            sw.setFactory(new ViewSwitcher.ViewFactory() {
+                @Override
+                public View makeView() {
+                    ImageView myView = new ImageView(getApplicationContext());
+                    myView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    myView.setLayoutParams(new ImageSwitcher.LayoutParams(GridLayout.LayoutParams.WRAP_CONTENT, GridLayout.LayoutParams.WRAP_CONTENT));
+                    return myView;
+                }
+            });
+            sw.setOnClickListener(this);
+
+            sw.setImageResource(R.drawable.star_unchecked);
+            sw.setTag(false);
+            cursor = getContentResolver().query(FAVOURITES_URI, null, null, null, null);
+            startManagingCursor(cursor);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    if (cursor.getString(0)
+                            .equals(quotesID)) {
+                        sw.setImageResource(R.drawable.star_checked);
+                        sw.setTag(true);
+                    }
+                } while (cursor.moveToNext());
+            }
+
+            sw.setTag(R.string.sw_tag_key, valuesForFavourites);
+            stopManagingCursor(cursor);
+        }
+
+        @Override
+        public void onClick(View view) {
+            ImageSwitcher switcher = (ImageSwitcher) view;
+            Cursor cursor = getContentResolver().query(FAVOURITES_URI, null, null, null, null);
+            startManagingCursor(cursor);
+            if (!(boolean) view.getTag()) {
+                getContentResolver().insert(FAVOURITES_URI,
+                        (ContentValues) view.getTag(R.string.sw_tag_key));
+
+                switcher.setImageResource(R.drawable.star_checked);
+                switcher.setTag(true);
+            } else {
+                long _id = -1;
+                if (cursor.moveToFirst()) {
+                    do {
+                        String quotesID = (String) ((ContentValues) view.getTag(R.string.sw_tag_key))
+                                .get("_id");
+                        if (cursor.getString(0)
+                                .equals(quotesID)) {
+                            _id = cursor.getLong(0);
+                        }
+                    } while (cursor.moveToNext());
+                }
+
+                Uri uri = Uri.parse(FAVOURITES_URI + "/" + _id);
+                getContentResolver().delete(uri, null, null);
+
+                switcher.setImageResource(R.drawable.star_unchecked);
+                switcher.setTag(false);
+            }
+        }
     }
 
 }

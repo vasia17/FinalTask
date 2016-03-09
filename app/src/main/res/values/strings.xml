@@ -6,4 +6,5 @@
     <string name="Authors">Автори</string>
     <string name="All_Quotes">Цитати</string>
     <string name="Favourites">Улюблені</string>
+    <string name="sw_tag_key"/>
 </resources>
